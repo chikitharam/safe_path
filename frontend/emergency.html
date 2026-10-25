@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePath AI - Emergency</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { background: #fff; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        .emergency-header { background: #c0392b; color: white; text-align: center; padding: 20px; }
+        .emergency-header h1 { margin: 0; font-size: 28px; }
+        .emergency-header p { margin: 5px 0 0; font-size: 14px; }
+        
+        .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+        
+        .call-btn { 
+            display: block; width: 100%; background: #c0392b; color: white; 
+            text-align: center; padding: 25px; font-size: 32px; font-weight: bold; 
+            text-decoration: none; border-radius: 15px; margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(192, 57, 43, 0.4);
+        }
+        
+        .action-btn {
+            display: block; width: 100%; background: #f4f7f6; color: #18332d;
+            padding: 15px; font-size: 18px; font-weight: bold; text-align: center;
+            border: 2px solid #147d64; border-radius: 10px; margin-bottom: 15px;
+            cursor: pointer;
+        }
+        
+        .action-btn:hover { background: #e8efec; }
+        
+        #map { height: 250px; width: 100%; border-radius: 10px; margin-top: 10px; }
+        .status-box { padding: 15px; border-radius: 8px; margin-top: 10px; text-align: center; font-weight: bold; }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-info { background: #d1ecf1; color: #0c5460; }
+        .disclaimer { font-size: 12px; color: #888; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="emergency-header">
+        <h1>🚨 EMERGENCY</h1>
+        <p>SafePath AI Quick Access</p>
+    </div>
+
+    <div class="container">
+        <!-- Emergency Call -->
+        <a href="tel:112" class="call-btn">📞 CALL 112</a>
+        <p style="text-align:center; font-size:12px; color:#666; margin-top:-15px; margin-bottom:20px;">
+            Your phone app will open. You must press dial.
+        </p>
+
+        <!-- Location & Police -->
+        <button class="action-btn" onclick="getLocationAndPolice()">📍 Find Nearby Police</button>
+        <div id="map"></div>
+        <div id="policeList" style="margin-top:15px;"></div>
+
+        <!-- Trusted Contact Alert -->
+        <button class="action-btn" onclick="triggerAlert()" style="border-color:#c0392b; color:#c0392b;">
+            🚨 Notify Trusted Contacts
+        </button>
+        <div id="alertStatus" class="status-box status-info" style="display:none;"></div>
+
+        <p class="disclaimer">
+            Note: Triple-press volume-up activation is not supported by mobile web browsers. 
+            Please use this page or save it to your home screen for quick access.
+        </p>
+        <p style="text-align:center; margin-top:20px;">
+            <a href="index.html" style="color:#147d64; font-weight:bold;">← Back to SafePath AI</a>
+        </p>
+    </div>
+
+    <script>
+        let map;
+        let userLat = null;
+        let userLng = null;
+
+        // Initialize Map
+        function initMap() {
+            map = L.map('map').setView([17.3850, 78.4867], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+        }
+
+        // Get Location and Fetch Police
+        function getLocationAndPolice() {
+            const listDiv = document.getElementById('policeList');
+            listDiv.innerHTML = "<p style='text-align:center;'>⏳ Getting location...</p>";
+
+            if (!navigator.geolocation) {
+                listDiv.innerHTML = "<p style='color:red;'>❌ Geolocation not supported.</p>";
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async function(position) {
+                userLat = position.coords.latitude;
+                userLng = position.coords.longitude;
+                
+                // Center map
+                map.setView([userLat, userLng], 14);
+                L.marker([userLat, userLng]).addTo(map).bindPopup("You are here").openPopup();
+
+                listDiv.innerHTML = "<p style='text-align:center;'>⏳ Finding nearby police...</p>";
+
+                try {
+                    const response = await fetch(`http://127.0.0.1:8000/api/v1/emergency/nearby-police?lat=${userLat}&lng=${userLng}`);
+                    const stations = await response.json();
+
+                    if (stations.length === 0) {
+                        listDiv.innerHTML = "<p style='color:#c0392b;'>⚠️ No verified police stations found nearby. Please call 112.</p>";
+                        return;
+                    }
+
+                    listDiv.innerHTML = "<h3>Nearby Police Stations</h3>";
+                    stations.forEach(s => {
+                        // Add to map
+                        const policeIcon = L.divIcon({ className: 'police-marker', html: '🚓', iconSize: [30, 30], iconAnchor: [15, 15] });
+                        L.marker([s.lat, s.lng], { icon: policeIcon }).addTo(map)
+                            .bindPopup(`<strong>${s.name}</strong><br>${s.distance_meters}m away<br><a href="tel:${s.phone_number}">📞 Call</a>`);
+
+                        // Add to list
+                        const card = document.createElement('div');
+                        card.style.cssText = "background:#f9f9f9; padding:10px; border-radius:8px; margin-bottom:10px; border-left:4px solid #147d64;";
+                        card.innerHTML = `
+                            <strong>🚓 ${s.name}</strong><br>
+                            <small>${s.address}</small><br>
+                            <small>Distance: ${s.distance_meters}m</small><br>
+                            <a href="tel:${s.phone_number}" style="color:#c0392b; font-weight:bold;">📞 Call Station</a> | 
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}" target="_blank" style="color:#147d64;">🧭 Directions</a>
+                            <br><small style="color:#888;">Source: ${s.source} (${s.verification_date})</small>
+                        `;
+                        listDiv.appendChild(card);
+                    });
+                } catch (e) {
+                    listDiv.innerHTML = "<p style='color:red;'>❌ Could not fetch police data. Please call 112.</p>";
+                }
+            }, function(error) {
+                listDiv.innerHTML = "<p style='color:red;'>❌ Location denied. Please allow location to find nearby help.</p>";
+            });
+        }
+
+        // Trigger Alert
+        async function triggerAlert() {
+            const statusDiv = document.getElementById('alertStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status-box status-info';
+            statusDiv.textContent = "⏳ Sending alert...";
+
+            if (!userLat || !userLng) {
+                statusDiv.className = 'status-box status-error';
+                statusDiv.textContent = "❌ Please find nearby police first to get your location.";
+                return;
+            }
+
+            // Check if logged in (using localStorage from index.html)
+            const userId = localStorage.getItem("user_id") || null;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/v1/emergency/alerts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ lat: userLat, lng: userLng, user_id: userId ? parseInt(userId) : null })
+                });
+
+                const data = await response.json();
+
+                if (data.status === "sent") {
+                    statusDiv.className = 'status-box status-success';
+                    statusDiv.textContent = `✅ ${data.message}`;
+                } else if (data.status === "anonymous") {
+                    statusDiv.className = 'status-box status-error';
+                    statusDiv.textContent = `⚠️ ${data.message}`;
+                } else {
+                    statusDiv.className = 'status-box status-error';
+                    statusDiv.textContent = `❌ ${data.message}`;
+                }
+            } catch (e) {
+                statusDiv.className = 'status-box status-error';
+                statusDiv.textContent = "❌ Network error. Please call 112 directly.";
+            }
+        }
+
+        // Initialize on load
+        window.onload = initMap;
+    </script>
+</body>
+</html>

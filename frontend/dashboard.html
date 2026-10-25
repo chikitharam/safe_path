@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePath AI - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .icon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; margin-bottom: 40px; }
+        .icon-card { background: white; padding: 30px 20px; border-radius: 16px; text-align: center; cursor: pointer; transition: transform 0.2s; text-decoration: none; color: inherit; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #d6e0dc; }
+        .icon-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(20, 125, 100, 0.15); }
+        .icon-card h3 { margin: 10px 0 5px; color: #147d64; }
+        .icon-card p { margin: 0; color: #60716b; font-size: 14px; }
+        .big-icon { font-size: 40px; margin-bottom: 10px; }
+        
+        #dashboard-section { background: white; padding: 24px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 5px 20px #18332d0d; border-left: 5px solid #e49b32; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2>🛡️ SafePath AI</h2>
+                <p>Welcome back, <span id="userNameDisplay">User</span>!</p>
+            </div>
+            <button onclick="localStorage.clear(); window.location.href='index.html';" class="danger-btn" style="width: auto; margin:0; padding: 8px 16px; font-size: 14px;">Log Out</button>
+        </div>
+    </header>
+
+    <main>
+        <h1>What would you like to do?</h1>
+        
+        <!-- 4 Main Navigation Icons -->
+        <div class="icon-grid">
+            <a href="route.html" class="icon-card">
+                <div class="big-icon">🗺️</div>
+                <h3>Plan a Safe Route</h3>
+                <p>Get routing options scored for safety.</p>
+            </a>
+            <a href="report.html" class="icon-card">
+                <div class="big-icon">📝</div>
+                <h3>Report an Incident</h3>
+                <p>Submit a safety report to the community.</p>
+            </a>
+            <a href="help.html" class="icon-card">
+                <div class="big-icon">📞</div>
+                <h3>Nearby Help</h3>
+                <p>Find police stations and emergency helplines.</p>
+            </a>
+            <a href="emergency.html" class="icon-card" style="border: 2px solid #c0392b;">
+                <div class="big-icon">🚨</div>
+                <h3 style="color: #c0392b;">Emergency</h3>
+                <p style="color: #c0392b;">Immediate access to 112 and alerts.</p>
+            </a>
+        </div>
+
+        <!-- Personal Safety Dashboard Section -->
+        <section id="dashboard-section">
+            <h2>👤 My Safety Dashboard</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                
+                <!-- Recent Reports -->
+                <div>
+                    <h3>My Recent Reports</h3>
+                    <div id="myReportsList" style="max-height: 250px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+                        <p style="color: #888; font-style: italic;">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Emergency Contacts & Check-in -->
+                <div>
+                    <h3>Emergency Settings</h3>
+                    
+                    <!-- List of Existing Contacts -->
+                    <div id="myContactsList" style="background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 15px; max-height: 150px; overflow-y: auto;">
+                        <p style="color: #888; font-style: italic;">Loading contacts...</p>
+                    </div>
+
+                    <!-- Add Contact Form -->
+                    <div style="background: #f4f7f6; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #d6e0dc;">
+                        <h4 style="margin-top: 0; color: #147d64;">Add Trusted Contact</h4>
+                        <input type="text" id="contactName" placeholder="Contact Name" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 5px;">
+                        <input type="text" id="contactPhone" placeholder="Email or Phone Number" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 5px;">
+                        <input type="text" id="contactRelation" placeholder="Relationship (e.g. Mother)" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 5px;">
+                        <button id="addContactBtn" style="background: #147d64; color: white; padding: 10px; width: 100%; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">Save Contact</button>
+                        <p id="contactStatus" style="text-align: center; margin-top: 10px; font-weight: bold; font-size: 14px;"></p>
+                    </div>
+
+                    <h3>Are you safe?</h3>
+                    <button id="dashboardCheckInBtn" style="background: #147d64; color: white; padding: 12px; width: 100%; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
+                        ✅ I'm Safe (Check-in)
+                    </button>
+                    <p id="checkInStatus" style="color: #147d64; font-weight: bold; margin-top: 10px; text-align: center;"></p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

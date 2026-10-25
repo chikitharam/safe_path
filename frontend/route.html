@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePath AI - Route</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <header>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div><h2>🗺️ Plan a Route</h2></div>
+            <a href="dashboard.html" style="color: white; text-decoration: none;">← Back to Dashboard</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="route-form">
+            <label for="start">Starting point</label>
+            <input id="start" type="text" placeholder="Enter starting point">
+            <label for="destination">Destination</label>
+            <input id="destination" type="text" placeholder="Enter destination">
+            <div class="button-group">
+                <button id="findRoute">Find Safe Route</button>
+                <button id="clearRoute" type="button" class="secondary-btn">Clear</button>
+            </div>
+            <p id="status" role="status"></p>
+        </section>
+
+        <section class="map-section">
+            <p class="map-instructions" id="mapStatus">📍 Click the map to choose your starting point. Right-click to report an incident.</p>
+            <div id="map"></div>
+        </section>
+
+        <section id="results" hidden>
+            <h2>Route comparison</h2>
+            <div id="routeCards"></div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

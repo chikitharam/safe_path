@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePath AI - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h2>🛡️ SafePath AI</h2>
+        <p>Smarter routes. Better-informed journeys.</p>
+    </header>
+
+    <main style="display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+        <section class="route-form" style="width: 100%; max-width: 400px;">
+            <h2>Welcome</h2>
+            <p>Enter any email to access your dashboard instantly.</p>
+            
+            <div id="authForms">
+                <input type="text" id="signupName" placeholder="Your Name (Optional)">
+                <input type="email" id="signupEmail" placeholder="Email Address (Any email works)">
+                
+                <div class="button-group">
+                    <button id="loginBtn" style="width: 100%;">Enter SafePath →</button>
+                </div>
+                <p id="authMessage" style="text-align: center; margin-top: 15px;"></p>
+            </div>
+            
+            <div id="loggedInView" style="display: none; text-align: center;">
+                <p style="color: #147d64; font-weight: bold; font-size: 20px;">✅ Logged in successfully!</p>
+                <a href="dashboard.html" style="display: block; margin-top: 15px; text-decoration: none;">
+                    <button style="background: #147d64;">Go to My Dashboard →</button>
+                </a>
+                <button id="logoutBtn" class="danger-btn" style="margin-top: 10px; width: 100%;">Log Out</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const authForms = document.getElementById("authForms");
+        const loggedInView = document.getElementById("loggedInView");
+        const authMessage = document.getElementById("authMessage");
+
+        // Check if already logged in on page load
+        if (localStorage.getItem("user_id")) {
+            authForms.style.display = "none";
+            loggedInView.style.display = "block";
+        }
+
+        // Handle Login
+        document.getElementById("loginBtn").addEventListener("click", async function() {
+            const name = document.getElementById("signupName").value || "Demo User";
+            const email = document.getElementById("signupEmail").value;
+            
+            if (!email) { 
+                authMessage.style.color = "red"; 
+                authMessage.textContent = "Please enter an email."; 
+                return; 
+            }
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/v1/auth/mock-login", {
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: name, email: email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem("user_name", data.user_name);
+                    localStorage.setItem("user_id", data.user_id);
+                    window.location.href = "dashboard.html";
+                } else {
+                    authMessage.style.color = "red";
+                    authMessage.textContent = "❌ " + (data.detail || "Login failed.");
+                }
+            } catch (e) { 
+                authMessage.style.color = "red"; 
+                authMessage.textContent = "❌ Network error. Is backend running?"; 
+            }
+        });
+
+        // Handle Logout (FIXED)
+        document.getElementById("logoutBtn").addEventListener("click", function() {
+            localStorage.clear(); // Clears all saved data
+            window.location.reload(); // Reloads the page to show login form
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePath AI - Nearby Help</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <header>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div><h2>📞 Nearby Help</h2></div>
+            <a href="dashboard.html" style="color: white; text-decoration: none;">← Back to Dashboard</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="helplines-section" class="route-form">
+            <h2>🚨 Emergency Helplines</h2>
+            <div id="helplineGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;"></div>
+        </section>
+
+        <section class="map-section">
+            <h2>Find Nearby Police Stations</h2>
+            <button id="findPoliceBtn" style="margin-bottom: 15px;">📍 Use My Location</button>
+            <div id="map" style="height: 300px; border-radius: 12px;"></div>
+            <div id="policeList" style="margin-top: 15px;"></div>
+        </section>
+    </main>
+
+    <script>
+        // 1. Render Helplines
+        const helplines = [
+            { name: "Emergency (ERSS)", number: "112", desc: "Police, Fire, Health" },
+            { name: "Police Helpline", number: "100", desc: "Direct Police" },
+            { name: "Women Helpline", number: "181", desc: "Domestic Violence" },
+            { name: "Ambulance", number: "102", desc: "Medical Emergency" }
+        ];
+        const helplineGrid = document.getElementById("helplineGrid");
+        helplines.forEach(h => {
+            const card = document.createElement("div");
+            card.style.cssText = "background:#f4f7f6; padding:12px; border-radius:8px; border-left:4px solid #c0392b;";
+            card.innerHTML = `
+                <strong>${h.name}</strong><br>
+                <a href="tel:${h.number}" style="font-size:20px; color:#c0392b; font-weight:bold; text-decoration:none;">📞 ${h.number}</a><br>
+                <small>${h.desc}</small>
+            `;
+            helplineGrid.appendChild(card);
+        });
+
+        // 2. Map & Police
+        const map = L.map('map').setView([17.3850, 78.4867], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        document.getElementById("findPoliceBtn").addEventListener("click", function() {
+            const list = document.getElementById("policeList");
+            list.innerHTML = "⏳ Getting location...";
+
+            navigator.geolocation.getCurrentPosition(async function(pos) {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+
+                map.setView([lat, lng], 14);
+                L.marker([lat, lng]).addTo(map).bindPopup("You are here").openPopup();
+
+                list.innerHTML = "⏳ Finding police...";
+
+                try {
+                    const response = await fetch(`http://127.0.0.1:8000/api/v1/facilities/police-nearby`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ lat: lat, lng: lng, radius_km: 10 })
+                    });
+                    const stations = await response.json();
+
+                    if (stations.length === 0) {
+                        list.innerHTML = "<p style='color:#c0392b;'>⚠️ No police stations found nearby. Call 100.</p>";
+                        return;
+                    }
+
+                    list.innerHTML = "<h3>Nearby Police Stations</h3>";
+                    stations.forEach(s => {
+                        // Add to map
+                        L.marker([s.lat, s.lng]).addTo(map).bindPopup(`<b>${s.name}</b>`);
+                        
+                        // Add to list
+                        const div = document.createElement("div");
+                        div.style.cssText = "padding:10px; border-bottom:1px solid #eee;";
+                        div.innerHTML = `
+                            <strong>🚓 ${s.name}</strong><br>
+                            <small>${s.address}</small><br>
+                            <a href="tel:${s.phone_number}" style="color:#c0392b;">📞 Call</a> | 
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}" target="_blank">🧭 Directions</a>
+                        `;
+                        list.appendChild(div);
+                    });
+                } catch (e) {
+                    list.innerHTML = "<p style='color:red;'>❌ Error fetching police data.</p>";
+                }
+            }, function() {
+                list.innerHTML = "<p style='color:red;'>❌ Location denied. Please allow location access.</p>";
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePath AI - Report Incident</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .report-form { max-width: 600px; margin: 0 auto; }
+        select, textarea { width: 100%; padding: 14px; border: 1px solid #d6e0dc; border-radius: 9px; font-size: 16px; margin-bottom: 15px; font-family: inherit; }
+        textarea { resize: vertical; min-height: 100px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div><h2>📝 Report an Incident</h2></div>
+            <a href="index.html" style="color: white; text-decoration: none; font-weight: bold;">← Back to Dashboard</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="route-form report-form" style="margin-top: 40px;">
+            <h2>Submit a Safety Report</h2>
+            <p>Help keep the community safe by reporting incidents.</p>
+
+            <label>Incident Category</label>
+            <select id="reportType">
+                <option value="Harassment">Harassment</option>
+                <option value="Stalking">Stalking</option>
+                <option value="Suspicious Behaviour">Suspicious Behaviour</option>
+                <option value="Poor Lighting">Poor Lighting</option>
+                <option value="Isolated Road">Isolated Road</option>
+                <option value="Theft">Theft</option>
+                <option value="Accident">Accident</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label>Description</label>
+            <textarea id="reportDescription" placeholder="Describe what happened..."></textarea>
+
+            <label>Evidence Link (Optional)</label>
+            <input type="text" id="reportEvidence" placeholder="https://example.com/photo.jpg" style="width: 100%; padding: 14px; border: 1px solid #d6e0dc; border-radius: 9px; margin-bottom: 15px;">
+
+            <button id="submitReportBtn">Submit Report</button>
+            <p id="reportStatus" style="text-align: center; font-weight: bold; margin-top: 15px;"></p>
+        </section>
+    </main>
+
+    <!-- This file loads the script that handles submitting the report -->
+    <script src="script.js"></script>
+</body>
+</html>
